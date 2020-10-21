@@ -64,6 +64,7 @@ Citizen.CreateThread(function()
 								end
 								if timer < 255 then
 									local veh = CreateVehicle(hash,-43.412292480469,-1094.7661132813,26.422361373901-0.81,136.54,true,false)
+									vehtodelete = veh
 									local primarycolor = tonumber(vehicle_colorprimary)
 									local secondarycolor = tonumber(vehicle_colorsecondary)
 									local pearlescentcolor = vehicle_pearlescentcolor
@@ -136,6 +137,7 @@ Citizen.CreateThread(function()
 			end
 			if IsControlJustPressed(1,202) then
 				IndietroMenu()
+				DelittaDue(vehtodelete)
 			end
 			if IsControlJustReleased(1,202) then
 				backlock = false
@@ -206,16 +208,6 @@ function ApriSubMenu(menu)
 end
 
 function IndietroMenu()
-	if Vdist(GetEntityCoords(GetPlayerPed(-1)),-41.254013061523,-1099.2563476563,26.422361373901) <= 0.8 then
-		local ped = GetPlayerPed( -1 )
-		local playerPos = GetEntityCoords( ped, 1 )
-		local inFrontOfPlayer = GetOffsetFromEntityInWorldCoords( ped, 0.0, 15.0, 0.0 )
-		local vehicle = DelittaUno( playerPos, inFrontOfPlayer )
-		if ( DoesEntityExist( vehicle ) ) then 
-			SetEntityAsMissionEntity( vehicle, true, true )
-			DelittaDue( vehicle )
-		end
-	end
 	if backlock then
 		return
 	end
@@ -239,16 +231,6 @@ function ChiudiMenu(vehicle,veh_type,button)
 	Citizen.CreateThread(function()
 	local ped = GetPlayerPed(-1)
 		if boughtcar then
-			if Vdist(GetEntityCoords(GetPlayerPed(-1)),-41.254013061523,-1099.2563476563,26.422361373901) <= 0.8 then
-				local ped = GetPlayerPed( -1 )
-				local playerPos = GetEntityCoords( ped, 1 )
-				local inFrontOfPlayer = GetOffsetFromEntityInWorldCoords( ped, 0.0, 15.0, 0.0 )
-				local vehicle = DelittaUno( playerPos, inFrontOfPlayer )
-				if ( DoesEntityExist( vehicle ) ) then 
-					SetEntityAsMissionEntity( vehicle, true, true )
-					DelittaDue( vehicle )
-				end
-			end
 			DisegnaNotifica("Go to the garage and pick up your new vehicle.")
 		end
 		StartFade()
@@ -376,14 +358,8 @@ function DisegnaNotifica(text)
     DrawNotification(false, false)
 end
 
-function DelittaUno( coordFrom, coordTo )
-    local rayHandle = CastRayPointToPoint( coordFrom.x, coordFrom.y, coordFrom.z, coordTo.x, coordTo.y, coordTo.z, 10, GetPlayerPed( -1 ), 0 )
-    local _, _, _, _, vehicle = GetRaycastResult( rayHandle )
-    return vehicle
-end
-
-function DelittaDue( entity )
-    Citizen.InvokeNative( 0xEA386986E786A54F, Citizen.PointerValueIntInitialized( entity ) )
+function DelittaDue(entity)
+    Citizen.InvokeNative(0xEA386986E786A54F, Citizen.PointerValueIntInitialized(entity))
 end
 
 function CosaFantasticosa(T)
