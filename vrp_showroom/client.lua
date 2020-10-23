@@ -231,6 +231,7 @@ function ChiudiMenu(vehicle,veh_type,button)
 	Citizen.CreateThread(function()
 	local ped = GetPlayerPed(-1)
 		if boughtcar then
+			DelittaDue(vehtodelete)
 			DisegnaNotifica("Go to the garage and pick up your new vehicle.")
 		end
 		StartFade()
