@@ -14,28 +14,22 @@ MySQL.createCommand("vRP/add_custom_vehicle","INSERT IGNORE INTO vrp_user_vehicl
 
 RegisterServerEvent('vrp:ControllaMoney')
 AddEventHandler('vrp:ControllaMoney', function(vehicle, price ,veh_type)
+	local source = source
 	local user_id = vRP.getUserId({source})
-  	local player = vRP.getUserSource({user_id})
 	MySQL.query("vRP/get_vehicle", {user_id = user_id, vehicle = vehicle}, function(pvehicle, affected)
 		if #pvehicle > 0 then
-			vRPclient.notify(player,{"~w~You already have this vehicle."})
+			vRPclient.notify(source,{"~w~You already have this vehicle."})
 		else
 			if vRP.tryFullPayment({user_id,price}) then
 				vRP.getUserIdentity({user_id, function(identity)
-				MySQL.query("vRP/add_custom_vehicle", {user_id = user_id, vehicle = vehicle, vehicle_plate = "P "..identity.registration, veh_type = veh_type})
+					MySQL.query("vRP/add_custom_vehicle", {user_id = user_id, vehicle = vehicle, vehicle_plate = "P "..identity.registration, veh_type = veh_type})
 				end})
 				TriggerClientEvent('vrp:ChiudiMenu', player, vehicle, veh_type)
-				vRPclient.notify(player,{"~w~You have paid ~g~"..price.."~w~$."})
+				vRPclient.notify(source,{"~w~You have paid ~g~"..price.."~w~$."})
 			else
-				vRPclient.notify(player,{"~w~You don't have enough money."})
+				vRPclient.notify(source,{"~w~You don't have enough money."})
 			end
 		end
 	end)
 end)
 
-RegisterServerEvent('vrp:AnimazioneListino')
-AddEventHandler('vrp:AnimazioneListino', function(id)
-    local user_id = vRP.getUserId({source})
-    local player = vRP.getUserSource({user_id})
-        vRPclient.playAnim(player, {false,{{"random@shop_tattoo", "_idle_a", 1}},true})
-end)

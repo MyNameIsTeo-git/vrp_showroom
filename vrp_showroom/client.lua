@@ -5,14 +5,23 @@ local vehshop = Config.Listino
 local fakecar = {model = '', car = nil}
 local boughtcar = false
 local backlock = false
+local showroom_coords = vector3(-41.254013061523,-1099.2563476563,26.422361373901)
+local calledNotifaction = false
+local ped = 0
 
+Citizen.CreateThread(function() 
+	while true do
+		ped = PlayerPedId() 
+		Wait(0)
+	end
+end)
 Citizen.CreateThread(function()
 	local last_dir
 	while true do
 		Citizen.Wait(1)
-		if not IsPedInAnyVehicle(GetPlayerPed(-1)) then
-			DrawMarker(1,-41.254013061523,-1099.2563476563,26.422361373901-1, 0, 0, 0, 0, 0, 0, 1.25, 1.25, 0.5001, 0, 125, 255, 125, 0, 0, 0, 0)
-			if Vdist(GetEntityCoords(GetPlayerPed(-1)),-41.254013061523,-1099.2563476563,26.422361373901) <= 0.8 then
+		if not IsPedInAnyVehicle(ped) then
+			DrawMarker(1,showroom_coords.x,showroom_coords.y, showroom_coords.z-1, 0, 0, 0, 0, 0, 0, 1.25, 1.25, 0.5001, 0, 125, 255, 125, 0, 0, 0, 0)
+			if #(GetEntityCoords(ped)-showroom_coords) <= 1.50 then
 				if not vehshop.opened then
 					DisegnaScritteBelle("~w~Press ~INPUT_CELLPHONE_SELECT~ to open the price list.")
 					if IsControlJustPressed(1,201) then
@@ -26,7 +35,6 @@ Citizen.CreateThread(function()
 			end
 		end
 		if vehshop.opened then
-			local ped = GetPlayerPed(-1)
 			local menu = vehshop.menu[vehshop.currentmenu]
 			DisegnaTitoloMenu("<b><i>Price list  "..vehshop.selectedbutton.."/"..CosaFantasticosa(menu.buttons), vehshop.menu.x,vehshop.menu.y + 0.08)
 			local y = vehshop.menu.y + 0.12
@@ -42,7 +50,7 @@ Citizen.CreateThread(function()
 					DisegnaMenu(button,vehshop.menu.x,y,selected)
 					if button.costs ~= nil then
 						if vehshop.currentmenu == "• Compacts" or vehshop.currentmenu == "• Coupes" or vehshop.currentmenu == "• Sedands" or vehshop.currentmenu == "• Sports" or vehshop.currentmenu == "• Classic Sports" or vehshop.currentmenu == "• Supers" or vehshop.currentmenu == "• Muscle" or vehshop.currentmenu == "• Offroad" or vehshop.currentmenu == "• Suvs" or vehshop.currentmenu == "• Vans" or vehshop.currentmenu == "industrial" or vehshop.currentmenu == "cycles" or vehshop.currentmenu == "• Motorbikes" then
-							DisegnaTesto3D(-43.412292480469,-1094.7661132813,26.422361373901+0.35, "~w~Price: ~g~"..button.costs.."~w~$", 0.8, 7,selected)
+							DisegnaTesto3D(showroom_coords, "~w~Price: ~g~"..button.costs.."~w~$", 0.8, 7,selected)
 						else
 							DisegnaMenu(button,vehshop.menu.x,y,selected)
 						end
@@ -52,7 +60,8 @@ Citizen.CreateThread(function()
 						if selected then
 							if fakecar.model ~= button.model then
 								if DoesEntityExist(fakecar.car) then
-									Citizen.InvokeNative(0xEA386986E786A54F, Citizen.PointerValueIntInitialized(fakecar.car))
+									DeleteEntity(fakecar.car)
+									-- Citizen.InvokeNative(0xEA386986E786A54F, Citizen.PointerValueIntInitialized(fakecar.car))
 								end
 								local hash = GetHashKey(button.model)
 								RequestModel(hash)
@@ -63,7 +72,7 @@ Citizen.CreateThread(function()
 									timer = timer + 1
 								end
 								if timer < 255 then
-									local veh = CreateVehicle(hash,-43.412292480469,-1094.7661132813,26.422361373901-0.81,136.54,true,false)
+									local veh = CreateVehicle(hash,showroom_coords.x, showroom_coords.y, showroom_coords.z-0.81,136.54,false,false)
 									vehtodelete = veh
 									local primarycolor = tonumber(vehicle_colorprimary)
 									local secondarycolor = tonumber(vehicle_colorsecondary)
@@ -75,6 +84,7 @@ Citizen.CreateThread(function()
 									while not DoesEntityExist(veh) do
 										Citizen.Wait(1)
 									end
+									TaskWarpPedIntoVehicle(Pped, veh, -1)
 									FreezeEntityPosition(veh,true)
 									SetEntityInvincible(veh,true)
 									SetVehicleDoorsLocked(veh,4)
@@ -174,10 +184,10 @@ end)
 
 function ApriMenu()
 	gameplaycam = GetRenderingCam()
-	SetEntityCoords(GetPlayerPed(-1), -41.254013061523,-1099.2563476563,26.422361373901-1)
-	SetEntityHeading(GetPlayerPed(-1), 30.99)
-	TriggerServerEvent("vrp:AnimazioneListino")
-	FreezeEntityPosition(GetPlayerPed(-1),true)
+	SetEntityCoords(ped, showroom_coords)
+	SetEntityHeading(ped, 30.99)
+	vRP.playAnim({false,{{"random@shop_tattoo", "_idle_a", 1}},true})
+	FreezeEntityPosition(ped,true)
 	Citizen.Wait(500)
 	StartFade()
 	Citizen.Wait(500)
@@ -216,7 +226,7 @@ function IndietroMenu()
 		ChiudiMenu("","")
 	elseif vehshop.currentmenu == "Sports" or vehshop.currentmenu == "normali" or vehshop.currentmenu == "• Sedands" or vehshop.currentmenu == "• Sports" or vehshop.currentmenu == "• Classic Sports" or vehshop.currentmenu == "• Supers" or vehshop.currentmenu == "• Muscle" or vehshop.currentmenu == "• Offroad" or vehshop.currentmenu == "• Suvs" or vehshop.currentmenu == "• Vans" or vehshop.currentmenu == "industrial" or vehshop.currentmenu == "cycles" or vehshop.currentmenu == "• Motorbikes" then
 		if DoesEntityExist(fakecar.car) then
-			Citizen.InvokeNative(0xEA386986E786A54F, Citizen.PointerValueIntInitialized(fakecar.car))
+			DeleteEntity(fakecar.car)
 		end
 		fakecar = {model = '', car = nil}
 		ApriSubMenu(vehshop.lastmenu)
@@ -226,10 +236,9 @@ function IndietroMenu()
 end
 
 function ChiudiMenu(vehicle,veh_type,button)
-	FreezeEntityPosition(GetPlayerPed(-1),false)
-	ClearPedTasks(PlayerPedId())
+	FreezeEntityPosition(ped,false)
+	ClearPedTasks(ped)
 	Citizen.CreateThread(function()
-	local ped = GetPlayerPed(-1)
 		if boughtcar then
 			DelittaDue(vehtodelete)
 			DisegnaNotifica("Go to the garage and pick up your new vehicle.")
@@ -284,7 +293,6 @@ function DisegnaMenu(button,x,y,selected)
 end
 
 function DisegnaBottoneSelezionato(button)
-	local ped = GetPlayerPed(-1)
 	local this = vehshop.currentmenu
 	local btn = button.name
 	if this == "• Menu" then
@@ -322,10 +330,9 @@ function DisegnaBottoneSelezionato(button)
 	end
 end
 
-function DisegnaTesto3D(x,y,z, text, scl, font, selected) 
-	local onScreen,_x,_y=World3dToScreen2d(x,y,z)
-	local px,py,pz=table.unpack(GetGameplayCamCoords())
-	local dist = GetDistanceBetweenCoords(px,py,pz, x,y,z, 1)
+function DisegnaTesto3D(coords, text, scl, font, selected) 
+	local onScreen,_x,_y=World3dToScreen2d(coords.x, coords.y, coords.z)
+	local dist = #(coords-GetGameplayCamCoords())
 	local scale = (1/dist)*scl
 	local fov = (1/GetGameplayCamFov())*100
 	local scale = scale*fov
@@ -370,10 +377,9 @@ function CosaFantasticosa(T)
 end
 
 function SetupInsideCam()
-	local ped = GetPlayerPed(-1)
 	cam = CreateCam("DEFAULT_SCRIPTED_CAMERA",true,2)
-	SetCamCoord(cam, -41.254013061523,-1099.2563476563,26.422361373901 + 1.0)
-	PointCamAtCoord(cam, -43.412292480469,-1094.7661132813,26.422361373901)
+	SetCamCoord(cam, vector3(-46.8022, -1094.215, 27.9209))
+	PointCamAtCoord(cam, showroom_coords.x, showroom_coords.y, showroom_coords.z)
 	SetCamActive(cam, true)
 	RenderScriptCams( 1, 0, cam, 0, 0)
 end
